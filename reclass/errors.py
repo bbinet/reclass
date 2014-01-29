@@ -79,6 +79,21 @@ class UriOverlapError(ConfigError):
         return msg.format(self._nodes_uri, self._classes_uri)
 
 
+class EnvironmentsConfigError(ConfigError):
+
+    def __init__(self, environments, default_environment):
+        super(ConfigError, self).__init__(msg=None)
+        self._environments = environments
+        self._default_environment = default_environment
+
+    def _get_message(self):
+        msg = "The default_environment: \"{0}\" does not match any " \
+              "in the environment list: {1}\n" \
+              "You should either add it to the environment list or unset " \
+              "it if you don't use environments."
+        return msg.format(self._default_environment, self._environments)
+
+
 class NotFoundError(ReclassException):
 
     def __init__(self, msg, rc=posix.EX_IOERR):

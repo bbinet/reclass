@@ -84,7 +84,8 @@ class Core(object):
         for klass in entity.classes.as_list():
             if klass not in seen:
                 try:
-                    class_entity = self._storage.get_class(klass)
+                    class_entity = self._storage.get_class(
+                        klass, env=entity.environment)
                 except ClassNotFound, e:
                     e.set_nodename(nodename)
                     raise e

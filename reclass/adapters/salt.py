@@ -23,12 +23,15 @@ def ext_pillar(minion_id, pillar,
                inventory_base_uri=OPT_INVENTORY_BASE_URI,
                nodes_uri=OPT_NODES_URI,
                classes_uri=OPT_CLASSES_URI,
+               environments=None,
+               default_environment=None,
                class_mappings=None):
 
     nodes_uri, classes_uri = path_mangler(inventory_base_uri,
                                           nodes_uri, classes_uri)
     storage = get_storage(storage_type, nodes_uri, classes_uri,
-                          default_environment='base')
+                          environments=environments,
+                          default_environment=default_environment)
     reclass = Core(storage, class_mappings)
 
     data = reclass.nodeinfo(minion_id)
@@ -41,14 +44,18 @@ def ext_pillar(minion_id, pillar,
 
 
 def top(minion_id, storage_type=OPT_STORAGE_TYPE,
-        inventory_base_uri=OPT_INVENTORY_BASE_URI, nodes_uri=OPT_NODES_URI,
+        inventory_base_uri=OPT_INVENTORY_BASE_URI,
+        nodes_uri=OPT_NODES_URI,
         classes_uri=OPT_CLASSES_URI,
+        environments=None,
+        default_environment=None,
         class_mappings=None):
 
     nodes_uri, classes_uri = path_mangler(inventory_base_uri,
                                           nodes_uri, classes_uri)
     storage = get_storage(storage_type, nodes_uri, classes_uri,
-                          default_environment='base')
+                          environments=environments,
+                          default_environment=default_environment)
     reclass = Core(storage, class_mappings)
 
     # if the minion_id is not None, then return just the applications for the
@@ -64,7 +71,7 @@ def top(minion_id, storage_type=OPT_STORAGE_TYPE,
         data = reclass.inventory()
         nodes = {}
         for node_id, node_data in data['nodes'].iteritems():
-            env = node_data['environment']
+            env = node_data['environment'] or 'base'
             if env not in nodes:
                 nodes[env] = {}
             nodes[env][node_id] = node_data['applications']
@@ -97,6 +104,8 @@ def cli():
                               inventory_base_uri=options.inventory_base_uri,
                               nodes_uri=options.nodes_uri,
                               classes_uri=options.classes_uri,
+                              environments=options.environments,
+                              default_environment=options.default_environment,
                               class_mappings=class_mappings)
         else:
             data = top(minion_id=None,
@@ -104,6 +113,8 @@ def cli():
                        inventory_base_uri=options.inventory_base_uri,
                        nodes_uri=options.nodes_uri,
                        classes_uri=options.classes_uri,
+                       environments=options.environments,
+                       default_environment=options.default_environment,
                        class_mappings=class_mappings)
 
         print output(data, options.output, options.pretty_print)

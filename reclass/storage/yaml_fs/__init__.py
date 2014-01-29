@@ -23,8 +23,16 @@ def vvv(msg):
 
 class ExternalNodeStorage(NodeStorageBase):
 
-    def __init__(self, nodes_uri, classes_uri, default_environment=None):
+    def __init__(self, nodes_uri, classes_uri, default_environment=None,
+                 environments=None):
         super(ExternalNodeStorage, self).__init__(STORAGE_NAME)
+
+        if default_environment and not (
+                environments and default_environment in environments):
+            raise reclass.errors.EnvironmentsConfigError(
+                environments, default_environment)
+        self._default_environment = default_environment
+        self._environments = environments
 
         def _handle_node_duplicates(name, uri1, uri2):
             raise reclass.errors.DuplicateNodeNameError(self._get_storage_name(),
@@ -33,9 +41,14 @@ class ExternalNodeStorage(NodeStorageBase):
         self._nodes = self._enumerate_inventory(nodes_uri,
                                                 duplicate_handler=_handle_node_duplicates)
         self._classes_uri = classes_uri
-        self._classes = self._enumerate_inventory(classes_uri)
-
-        self._default_environment = default_environment
+        try:
+            self._classes = {}
+            for env in environments:
+                self._classes[env] = self._enumerate_inventory(
+                    os.path.join(classes_uri, env))
+        except TypeError:
+            # there is no environments
+            self._classes = self._enumerate_inventory(classes_uri)
 
     nodes_uri = property(lambda self: self._nodes_uri)
     classes_uri = property(lambda self: self._classes_uri)
@@ -67,13 +80,17 @@ class ExternalNodeStorage(NodeStorageBase):
         entity = YamlFile(path).get_entity(name, self._default_environment)
         return entity
 
-    def get_class(self, name, nodename=None):
+    def get_class(self, name, nodename=None, env=None):
         vvv('GET CLASS {0}'.format(name))
         try:
-            path = os.path.join(self.classes_uri, self._classes[name])
+            if env is None:
+                path = os.path.join(self.classes_uri, self._classes[name])
+            else:
+                path = os.path.join(
+                    self.classes_uri, env, self._classes[env][name])
         except KeyError, e:
             raise reclass.errors.ClassNotFound(self.name, name, self.classes_uri)
-        entity = YamlFile(path).get_entity(name)
+        entity = YamlFile(path).get_entity(name, default_environment=env)
         return entity
 
     def enumerate_nodes(self):

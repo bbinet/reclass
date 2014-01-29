@@ -29,6 +29,20 @@ def make_db_options_group(parser, defaults={}):
     ret.add_option('-c', '--classes-uri', dest='classes_uri',
                    default=defaults.get('classes_uri', OPT_CLASSES_URI),
                    help='the URI to the classes storage [%default]')
+
+    def _environments_cb(option, opt_str, value, parser):
+        environments = None
+        if value:
+            environments = value.split(',')
+        setattr(parser.values, option.dest, environments)
+
+    ret.add_option('-e', '--environments', dest='environments',
+                   default=None, action='callback', callback=_environments_cb,
+                   help='the optional environments to the classes storage')
+    ret.add_option('-d', '--default-environment', dest='default_environment',
+                   default=None, help='the default environment to pick if none'
+                   ' is specified for the node (this has to be part of the'
+                   ' --environments options)')
     return ret
 
 
