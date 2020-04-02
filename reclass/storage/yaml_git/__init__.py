@@ -42,7 +42,7 @@ def path_mangler(inventory_base_uri, nodes_uri, classes_uri):
     return nodes_uri, classes_uri
 
 
-GitMD = collections.namedtuple('GitMD', ['name', 'path', 'id'], verbose=False, rename=False)
+GitMD = collections.namedtuple('GitMD', ['name', 'path', 'id'], rename=False)
 
 
 class GitURI(object):
