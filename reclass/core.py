@@ -167,6 +167,15 @@ class Core(object):
         else:
             return Parameters({}, self._settings, '')
 
+    def _get_scalar_parameters(self, node_parameters):
+        if self._settings.scalar_parameters:
+            scalars = node_parameters.as_dict().get(
+                    self._settings.scalar_parameters, {})
+            return Parameters(
+                    {self._settings.scalar_parameters: scalars}, self._settings, '__scalar__')
+        else:
+            return Parameters({}, self._settings, '')
+
     def _get_inventory(self, all_envs, environment, queries):
         inventory = {}
         for nodename in self._storage.enumerate_nodes():
@@ -210,6 +219,7 @@ class Core(object):
         base_entity.merge(self._get_class_mappings_entity(node_entity.name))
         base_entity.merge(self._get_input_data_entity())
         base_entity.merge_parameters(self._get_automatic_parameters(nodename, node_entity.environment))
+        base_entity.merge_parameters(self._get_scalar_parameters(node_entity.parameters))
         seen = {}
         merge_base = self._recurse_entity(base_entity, seen=seen, nodename=nodename,
                                           environment=node_entity.environment)
